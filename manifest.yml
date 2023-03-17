@@ -1,4 +1,4 @@
-name: 'netlify-plugin-{{name}}'
+name: 'netlify-plugin-commercetools-frontend'
 inputs: []
 # Example inputs:
 #  - name: example
