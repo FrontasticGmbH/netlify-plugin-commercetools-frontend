@@ -43,6 +43,9 @@
     "ava": "cross-env FORCE_COLOR=1 ava --verbose",
     "release": "release-it"
   },
+  "dependencies": {
+    "dotenv": "^16.0.3"
+  },
   "devDependencies": {
     "@netlify/build": "^26.5.3",
     "ava": "^4.0.0",
