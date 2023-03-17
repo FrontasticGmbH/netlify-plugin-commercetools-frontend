@@ -1,4 +1,8 @@
-require('dotenv').config()
+import * as dotenv from 'dotenv'
+import * as fs from 'fs'
+import fetch from 'node-fetch'
+
+dotenv.config();
 
 // This is the main file for the Netlify Build plugin netlfycommercetools-frontend.
 // Please read the comments to learn more about the Netlify Build plugin syntax.
@@ -75,7 +79,7 @@ export const onPreBuild = async function ({
     // Commands are printed in Netlify logs
 	  const shortCommitHash = process.env.COMMIT_REF.substring(0, 7)
     	  fs.writeFileSync(".env.production.local", `NEXT_PUBLIC_EXT_BUILD_ID=${shortCommitHash}`)
-	  await waitForBackend()
+	  await waitForBackend(shortCommitHash)
   } catch (error) {
     // Report a user error
     build.failBuild('Error message', { error })
@@ -115,14 +119,19 @@ export const onEnd = function () {}
 
 
 
-const checkBackend = async () => {
+const checkBackend = async (version) => {
+    // hacky!
+    if (!process.env.NEXT_PUBLIC_FRONTASTIC_HOST) {
+	    return true;
+    }
+
     const path = process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
-    console.log("Calling " + path, "Version " + getCommitHash())
+    console.log("Calling " + path, "Version " + version)
     const actualInit = {
         headers: {
             'Content-Type': 'application/json',
             Accept: 'application/json',
-            'Commercetools-Frontend-Extension-Version': getCommitHash(),
+            'Commercetools-Frontend-Extension-Version': version,
         },
     };
 
@@ -133,11 +142,11 @@ const checkBackend = async () => {
     })
 }
 
-const waitForBackend = async () => {
+const waitForBackend = async (shortCommitHash) => {
     for (let i = 0; i < 35; i++) {
         const attempt = i + 1
         console.log("Checking if extension is up, attempt: ", attempt)
-        const up = await checkBackend();
+        const up = await checkBackend(shortCommitHash);
         if (!up) {
             console.error("Extension is not available, waiting for", attempt, "seconds")
 	    await sleep(i * 1000)
