@@ -34,10 +34,6 @@
       "FORCE_COLOR": "1"
     }
   },
-<<<<<<< HEAD
-  "dependencies": {
-    "dotenv": "^16.0.3"
-=======
   "scripts": {
     "build": "netlify-build",
     "test": "npm run lint && npm run ava",
@@ -46,6 +42,9 @@
     "prettier": "prettier --ignore-path .gitignore --write --loglevel warn \"{.github,src,init}/**/*.{cjs,mjs,js,md,yml,json}\" \"*.{cjs,mjs,js,md,yml,json}\"",
     "ava": "cross-env FORCE_COLOR=1 ava --verbose",
     "release": "release-it"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
     "@netlify/build": "^26.5.3",
@@ -60,6 +59,5 @@
     "netlify-cli": "^9.16.2",
     "prettier": "^2.1.2",
     "release-it": "^15.0.0"
->>>>>>> master
   }
 }
