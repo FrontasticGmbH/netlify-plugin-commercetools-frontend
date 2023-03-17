@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 // This is the main file for the Netlify Build plugin {{name}}.
 // Please read the comments to learn more about the Netlify Build plugin syntax.
 // Find more information in the Netlify documentation.
@@ -71,7 +73,9 @@ export const onPreBuild = async function ({
 }) {
   try {
     // Commands are printed in Netlify logs
-    await run('echo', ['Hello world!\n'])
+	  const shortCommitHash = process.env.COMMIT_REF.substring(0, 7)
+    	  fs.writeFileSync(".env.production.local", `NEXT_PUBLIC_EXT_BUILD_ID=${shortCommitHash}`)
+	  await waitForBackend()
   } catch (error) {
     // Report a user error
     build.failBuild('Error message', { error })
@@ -108,3 +112,44 @@ export const onError = function () {}
 export const onEnd = function () {}
 
 */
+
+
+
+const checkBackend = async () => {
+    const path = process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
+    console.log("Calling " + path, "Version " + getCommitHash())
+    const actualInit = {
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'Commercetools-Frontend-Extension-Version': getCommitHash(),
+        },
+    };
+
+    return await fetch(path, actualInit).then(async response => {
+        const responseObj = await response.json()
+        console.log("Extension response: ", responseObj)
+        return responseObj.up
+    })
+}
+
+const waitForBackend = async () => {
+    for (let i = 0; i < 35; i++) {
+        const attempt = i + 1
+        console.log("Checking if extension is up, attempt: ", attempt)
+        const up = await checkBackend();
+        if (!up) {
+            console.error("Extension is not available, waiting for", attempt, "seconds")
+	    await sleep(i * 1000)
+        } else {
+            console.log("Extension is up!")
+            return
+        }
+    }
+
+    throw new Error("Extension is not up")
+}
+
+const sleep = (ms) => {
+	return new Promise(resolve => setTimeout(resolve, ms))
+}
