@@ -11,3 +11,7 @@ node_modules
 /coverage
 /build
 .netlify
+
+.idea
+.env.production.local
+.env
