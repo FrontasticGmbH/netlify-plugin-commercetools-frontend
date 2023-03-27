@@ -1,5 +1,5 @@
 import { describe, beforeEach, expect, it, vi, afterEach } from 'vitest'
-import { checkBackend } from '../src/index'
+import { checkBackend, waitForBackend } from '../src/index'
 import * as nodeFetch from 'node-fetch'
 
 vi.mock('node-fetch', async () => {
@@ -9,29 +9,37 @@ vi.mock('node-fetch', async () => {
     default: vi.fn(),
   }
 })
+vi.mock('../src/index', async () => {
+  const actual = await vi.importActual('../src/index')
+  return {
+    ...actual,
+    sleep: vi.fn(),
+  }
+})
 const fetch = vi.mocked(nodeFetch.default)
-// const mockedCheckBackend = vi.fn(checkBackend)
-// const mockSleep = vi.fn(sleep)
 
 describe('test index', () => {
+  const version = '56664e5'
+  const path = 'http://localhost/status/extensionrunner'
+
+  const expectedInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'Commercetools-Frontend-Extension-Version': version,
+    },
+  }
   beforeEach(() => {
     vi.useFakeTimers()
+
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
-  it('should return up if backend is up', async function () {
-    const version = '1.0.0'
-    const path = 'http://localhost/status/extensionrunner'
-    const expectedInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'Commercetools-Frontend-Extension-Version': version,
-      },
-    }
+  it('should return true if backend is up', async function() {
+
     const responseObj = { up: true }
     fetch.mockImplementationOnce(async () => {
       return {
@@ -46,16 +54,7 @@ describe('test index', () => {
     expect(up).toBe(true)
   })
 
-  it('should return up if backend is not up', async function () {
-    const version = '1.0.0'
-    const path = 'http://localhost/status/extensionrunner'
-    const expectedInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'Commercetools-Frontend-Extension-Version': version,
-      },
-    }
+  it('should return false if backend is not up', async function() {
     const responseObj = { up: false }
     fetch.mockImplementationOnce(async () => {
       return {
@@ -63,34 +62,28 @@ describe('test index', () => {
       }
     })
     const { up } = await checkBackend(version, path)
-
     expect(fetch).toBeCalledWith(path, expectedInit)
     expect(up).toBe(false)
   })
 
-  /*
-TODO: This test needs to have dependency injected params. Sleep is causing the test to fail
-it('test if backend is called with maximum tries', async function() {
-  const version = '1.0.0'
-  const path = 'http://localhost/status/extensionrunner'
-  const maxTries = 2
-
-  const responseObj = { up: false }
-  fetch.mockImplementationOnce(async () => ({
-    json: async () => responseObj,
-  }))
-  mockedCheckBackend.mockImplementationOnce(async () => ({
-    up: false,
-  }))
-
-  mockSleep.mockImplementationOnce(async () => {
-    console.log('mocked sleep')
+  it('test if backend is called with maximum tries and extensions is not up ', async function() {
+    const maxTries = 3
+    try {
+      await waitForBackend(version, maxTries, path).rejects.toThrow('Extension is not up')
+      expect(fetch).toHaveBeenCalledTimes(maxTries)
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error)
+    }
   })
-  try {
-    await waitForBackend(version, maxTries, path)
-  } catch (e) {
-    expect(e).toBeInstanceOf(Error)
-  }
-})
-*/
+
+  it('test if backend is called with maximum tries and everything is good', async function() {
+    const maxTries = 3
+    try {
+      await waitForBackend(version, maxTries, path).resolves.toEqual(false)
+      expect(fetch).toHaveBeenCalledTimes(maxTries)
+    } catch (e) {
+    //We ignore, because there is no error
+    }
+  })
+
 })

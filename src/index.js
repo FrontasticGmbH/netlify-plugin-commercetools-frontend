@@ -93,9 +93,7 @@ export const waitForBackend = async (shortCommitHash, maxTries, path) => {
         attempt,
         'seconds',
       )
-      // await sleep(i * 1000)
-      const ms = i * 1000
-      await new Promise((resolve) => setTimeout(resolve, ms))
+      await sleep(i * 1000)
     } else {
       console.log('Extension is up!')
       return
