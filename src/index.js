@@ -5,24 +5,23 @@ import fetch from 'node-fetch'
 dotenv.config()
 
 /* eslint-disable no-unused-vars */
-export const onPreBuild = async function({
-                                           netlifyConfig,
-                                           inputs,
-                                           error,
+export const onPreBuild = async function ({
+  netlifyConfig,
+  inputs,
+  error,
 
-                                           // Build constants
-                                           constants: { PUBLISH_DIR },
+  // Build constants
+  constants: { PUBLISH_DIR },
 
-                                           // Core utilities
-                                           utils: {
-                                             // Utility to report errors.
-                                             // See https://github.com/netlify/build#error-reporting
-                                             build,
-                                             // Utility to display information in the deploy summary.
-                                             // See https://github.com/netlify/build#logging
-                                             status,
-                                           },
-                                         }) {
+  // Core utilities
+  utils: {
+    // Utility to report errors.
+    // See https://github.com/netlify/build#error-reporting
+    build, // Utility to display information in the deploy summary.
+    // See https://github.com/netlify/build#logging
+    status,
+  },
+}) {
   try {
     // Commands are printed in Netlify logs
     const shortCommitHash = process.env.COMMIT_REF.substring(0, 7)
@@ -52,7 +51,6 @@ export const onPreBuild = async function({
  * Does an HTTP request to the appropriate extension runner
  */
 export const checkBackend = async (version, path) => {
-
   console.log('Calling ' + path, 'Version ' + version)
   const actualInit = {
     headers: {
@@ -62,12 +60,16 @@ export const checkBackend = async (version, path) => {
     },
   }
 
-  const response = await fetch(path, actualInit)
+  try {
+    const response = await fetch(path, actualInit)
 
-  const responseObj = await response.json()
-  console.log('Extension response: ', responseObj)
-  return responseObj.up
-
+    if (response) {
+      return await response.json()
+    }
+  } catch (e) {
+    console.log(`Error while calling extension runner ${path}:`, e)
+  }
+  return { up: false }
 }
 
 /**
@@ -84,14 +86,16 @@ export const waitForBackend = async (shortCommitHash, maxTries, path) => {
   for (let i = 0; i < maxTries; i++) {
     const attempt = i + 1
     console.log('Checking if extension is up, attempt: ', attempt)
-    const up = await checkBackend(shortCommitHash, path)
+    const { up } = await checkBackend(shortCommitHash, path)
     if (!up) {
       console.error(
         'Extension is not available, waiting for',
         attempt,
         'seconds',
       )
-      await sleep(i * 1000)
+      // await sleep(i * 1000)
+      const ms = i * 1000
+      await new Promise((resolve) => setTimeout(resolve, ms))
     } else {
       console.log('Extension is up!')
       return

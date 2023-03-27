@@ -38,10 +38,9 @@
     "build": "netlify-build",
     "test": "vitest",
     "coverage": "vitest run --coverage",
-    "lint": "npm run eslint && npm run prettier",
+    "lint": "npm run eslint && npm run prettier --write ",
     "eslint": "eslint --ignore-path .gitignore --fix --cache --format=codeframe --max-warnings=0 \"{src,init}/**/*.{cjs,mjs,js}\"",
     "prettier": "prettier --ignore-path .gitignore --write --loglevel warn \"{.github,src,init}/**/*.{cjs,mjs,js,md,yml,json}\" \"*.{cjs,mjs,js,md,yml,json}\"",
-    "ava": "cross-env FORCE_COLOR=1 ava --verbose",
     "release": "release-it"
   },
   "dependencies": {
