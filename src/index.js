@@ -44,6 +44,8 @@ export const onPreBuild = async function ({
 
   // Display success information
   status.show({ summary: 'Success!' })
+
+  return true
 }
 
 /*

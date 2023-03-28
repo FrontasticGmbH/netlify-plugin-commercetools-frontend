@@ -1,6 +1,8 @@
 import { describe, beforeEach, expect, it, vi, afterEach } from 'vitest'
-import { checkBackend, waitForBackend } from '../src/index'
+import { checkBackend, waitForBackend, onPreBuild } from '../src/index'
 import * as nodeFetch from 'node-fetch'
+import fs from 'fs'
+
 
 vi.mock('node-fetch', async () => {
   const actual = await vi.importActual('node-fetch')
@@ -82,8 +84,50 @@ describe('test index', () => {
       await waitForBackend(version, maxTries, path).resolves.toEqual(false)
       expect(fetch).toHaveBeenCalledTimes(maxTries)
     } catch (e) {
-    //We ignore, because there is no error
+      //We ignore, because there is no error
     }
   })
+
+  it('should write file and wait for backend', async () => {
+
+    const mockNetlifyConfig = {};
+    const mockInputs = {};
+    const mockConstants = { PUBLISH_DIR: 'dist' };
+    const mockUtils = {
+      build: {
+        failBuild: vi.fn(),
+      },
+      status: {
+        show: vi.fn(),
+      },
+    };
+
+    process.env.COMMIT_REF = version;
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = path;
+
+    fs.writeFileSync = vi.fn();
+
+    const waitForBackendMock = vi.fn(()=>({up: true}));
+
+    const maxTries = 3
+    try {
+      await onPreBuild({
+        netlifyConfig: mockNetlifyConfig,
+        inputs: mockInputs,
+        error: null,
+        constants: mockConstants,
+        utils: {
+          ...mockUtils,
+          waitForBackendMock,
+        },
+      }).resolves.toEqual(false);
+
+      expect(fs.writeFileSync).toHaveBeenCalledWith('.env.production.local', `NEXT_PUBLIC_EXT_BUILD_ID=${version}`);
+      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries, path);
+      expect(fetch).toHaveBeenCalledTimes(maxTries)
+    } catch (e) {
+      //We ignore, because there is no error
+    }
+  });
 
 })
