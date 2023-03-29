@@ -1,5 +1,6 @@
 import { describe, beforeEach, expect, it, vi, afterEach } from 'vitest'
-import { checkBackend, waitForBackend, onPreBuild } from '../src/index'
+import { onPreBuild } from '../src/index'
+import { checkBackend, waitForBackend } from '../src/backend-check'
 import * as nodeFetch from 'node-fetch'
 import fs from 'fs'
 
