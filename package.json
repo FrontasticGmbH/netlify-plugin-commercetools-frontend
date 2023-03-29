@@ -1,6 +1,6 @@
 {
   "name": "@commercetools/frontend-netlify-plugin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Netlify Build plugin - Commercetools Frontend build extension",
   "type": "module",
   "exports": "./src/index.js",
