@@ -1,6 +1,6 @@
 {
   "name": "@commercetools/frontend-netlify-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Netlify Build plugin - Commercetools Frontend build extension",
   "type": "module",
   "exports": "./src/index.js",
@@ -45,8 +45,7 @@
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "node-fetch": "^3.3.1",
-    "vitest-fetch-mock": "^0.2.2"
+    "node-fetch": "^3.3.1"
   },
   "devDependencies": {
     "@netlify/build": "^26.5.3",
@@ -61,6 +60,7 @@
     "netlify-cli": "^9.16.2",
     "prettier": "^2.1.2",
     "release-it": "^15.0.0",
-    "vitest": "^0.29.7"
+    "vitest": "^0.29.7",
+    "vitest-fetch-mock": "^0.2.2"
   }
 }
