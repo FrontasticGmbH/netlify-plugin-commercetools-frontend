@@ -36,16 +36,17 @@
   },
   "scripts": {
     "build": "netlify-build",
-    "test": "npm run lint && npm run ava",
-    "lint": "npm run eslint && npm run prettier",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "npm run eslint && npm run prettier --write ",
     "eslint": "eslint --ignore-path .gitignore --fix --cache --format=codeframe --max-warnings=0 \"{src,init}/**/*.{cjs,mjs,js}\"",
     "prettier": "prettier --ignore-path .gitignore --write --loglevel warn \"{.github,src,init}/**/*.{cjs,mjs,js,md,yml,json}\" \"*.{cjs,mjs,js,md,yml,json}\"",
-    "ava": "cross-env FORCE_COLOR=1 ava --verbose",
     "release": "release-it"
   },
   "dependencies": {
     "dotenv": "^16.0.3",
-    "node-fetch": "^3.3.1"
+    "node-fetch": "^3.3.1",
+    "vitest-fetch-mock": "^0.2.2"
   },
   "devDependencies": {
     "@netlify/build": "^26.5.3",
@@ -59,6 +60,7 @@
     "execa": "^6.0.0",
     "netlify-cli": "^9.16.2",
     "prettier": "^2.1.2",
-    "release-it": "^15.0.0"
+    "release-it": "^15.0.0",
+    "vitest": "^0.29.7"
   }
 }

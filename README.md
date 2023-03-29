@@ -1,5 +1,5 @@
-Netlify Build plugin netlfy-commercetools-frontend - Commercetools Frontend build
-extension.
+Netlify Build plugin netlfy-commercetools-frontend - Commercetools Frontend
+build extension.
 
 # Install
 

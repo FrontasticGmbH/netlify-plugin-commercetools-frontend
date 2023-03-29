@@ -17,8 +17,7 @@ export const onPreBuild = async function ({
   utils: {
     // Utility to report errors.
     // See https://github.com/netlify/build#error-reporting
-    build,
-    // Utility to display information in the deploy summary.
+    build, // Utility to display information in the deploy summary.
     // See https://github.com/netlify/build#logging
     status,
   },
@@ -30,7 +29,9 @@ export const onPreBuild = async function ({
       '.env.production.local',
       `NEXT_PUBLIC_EXT_BUILD_ID=${shortCommitHash}`,
     )
-    await waitForBackend(shortCommitHash, 35)
+    const path =
+      process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
+    await waitForBackend(shortCommitHash, 35, path)
   } catch (error) {
     // Report a user error
     build.failBuild('Error message', { error })
@@ -43,15 +44,15 @@ export const onPreBuild = async function ({
 
   // Display success information
   status.show({ summary: 'Success!' })
+
+  return true
 }
 
 /*
  * Checks if the backend is ready
  * Does an HTTP request to the appropriate extension runner
  */
-const checkBackend = async (version) => {
-  const path =
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
+export const checkBackend = async (version, path) => {
   console.log('Calling ' + path, 'Version ' + version)
   const actualInit = {
     headers: {
@@ -61,11 +62,16 @@ const checkBackend = async (version) => {
     },
   }
 
-  return await fetch(path, actualInit).then(async (response) => {
-    const responseObj = await response.json()
-    console.log('Extension response: ', responseObj)
-    return responseObj.up
-  })
+  try {
+    const response = await fetch(path, actualInit)
+
+    if (response) {
+      return await response.json()
+    }
+  } catch (e) {
+    console.log(`Error while calling extension runner ${path}:`, e)
+  }
+  return { up: false }
 }
 
 /**
@@ -75,13 +81,14 @@ const checkBackend = async (version) => {
  *
  * @param shortCommitHash the extension version
  * @param maxTries the max number of attempts
+ * @param path the path to be tested
  * @returns {Promise<void>}
  */
-const waitForBackend = async (shortCommitHash, maxTries) => {
+export const waitForBackend = async (shortCommitHash, maxTries, path) => {
   for (let i = 0; i < maxTries; i++) {
     const attempt = i + 1
     console.log('Checking if extension is up, attempt: ', attempt)
-    const up = await checkBackend(shortCommitHash)
+    const { up } = await checkBackend(shortCommitHash, path)
     if (!up) {
       console.error(
         'Extension is not available, waiting for',
@@ -94,10 +101,9 @@ const waitForBackend = async (shortCommitHash, maxTries) => {
       return
     }
   }
-
   throw new Error('Extension is not up')
 }
 
-const sleep = (ms) => {
+export const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
