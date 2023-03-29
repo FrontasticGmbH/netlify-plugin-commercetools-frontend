@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv'
 import * as fs from 'fs'
+import { waitForBackend } from "./backend-check.js";
 
 dotenv.config()
 
