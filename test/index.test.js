@@ -103,7 +103,7 @@ describe('test index', () => {
     };
 
     process.env.COMMIT_REF = version;
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = path;
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
 
     fs.writeFileSync = vi.fn();
 
@@ -127,6 +127,48 @@ describe('test index', () => {
       expect(fetch).toHaveBeenCalledTimes(maxTries)
     } catch (e) {
       //We ignore, because there is no error
+    }
+  });
+
+  it('should call build.failBuild', async () => {
+
+    const mockNetlifyConfig = {};
+    const mockInputs = {};
+    const mockConstants = { PUBLISH_DIR: 'dist' };
+    const mockUtils = {
+      build: {
+        failBuild: vi.fn(),
+      },
+      status: {
+        show: vi.fn(),
+      },
+    };
+
+    process.env.COMMIT_REF = version;
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+
+    fs.writeFileSync = vi.fn();
+
+    const waitForBackendMock = vi.fn(()=>({up: false}));
+
+    const maxTries = 3
+    try {
+      await onPreBuild({
+        netlifyConfig: mockNetlifyConfig,
+        inputs: mockInputs,
+        error: null,
+        constants: mockConstants,
+        utils: {
+          ...mockUtils,
+          waitForBackendMock,
+        },
+      }).resolves.toEqual(false);
+
+      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries, path);
+      expect(fetch).toHaveBeenCalledTimes(maxTries)
+      expect(mockUtils.build.failBuild).toThrowError();
+    } catch (e) {
+      //ignore
     }
   });
 
