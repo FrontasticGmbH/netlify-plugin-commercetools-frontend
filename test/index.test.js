@@ -131,6 +131,44 @@ describe('test index', () => {
     }
   });
 
+  it('should not call backend if disable environment variable is 1', async () => {
+
+    const mockNetlifyConfig = {};
+    const mockInputs = {};
+    const mockConstants = { PUBLISH_DIR: 'dist' };
+    const mockUtils = {
+      build: {
+        failBuild: vi.fn(),
+      },
+      status: {
+        show: vi.fn(),
+      },
+    };
+
+    process.env.COMMIT_REF = version;
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE = "1";
+
+    fs.writeFileSync = vi.fn()
+    const waitForBackendMock = vi.fn(()=>({up: false}));
+
+    const preBuildResult = await onPreBuild({
+      netlifyConfig: mockNetlifyConfig,
+      inputs: mockInputs,
+      error: null,
+      constants: mockConstants,
+      utils: {
+        ...mockUtils,
+        waitForBackendMock,
+      },
+    });
+
+    expect(preBuildResult).toBeTruthy()
+    expect(waitForBackendMock).toHaveBeenCalledTimes(0)
+    expect(fetch).toHaveBeenCalledTimes(0)
+    expect(mockUtils.build.failBuild).toHaveBeenCalledTimes(0);
+  });
+
   it('should call build.failBuild', async () => {
 
     const mockNetlifyConfig = {};

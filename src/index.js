@@ -29,9 +29,11 @@ export const onPreBuild = async function ({
       '.env.production.local',
       `NEXT_PUBLIC_EXT_BUILD_ID=${shortCommitHash}`,
     )
-    const path =
-      process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
-    await waitForBackend(shortCommitHash, 35, path)
+    if (process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE !== "1") {
+      const path =
+        process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
+      await waitForBackend(shortCommitHash, 35, path)
+    }
   } catch (error) {
     // Report a user error
     build.failBuild('Error message', { error })
