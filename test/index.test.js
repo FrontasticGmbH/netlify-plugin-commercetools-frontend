@@ -42,6 +42,8 @@ describe('test index', () => {
   })
 
   it('should return true if backend is up', async function() {
+    process.env.COMMIT_REF = version;
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
 
     const responseObj = { up: true }
     fetch.mockImplementationOnce(async () => {
@@ -58,6 +60,9 @@ describe('test index', () => {
   })
 
   it('should return false if backend is not up', async function() {
+    process.env.COMMIT_REF = version;
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+
     const responseObj = { up: false }
     fetch.mockImplementationOnce(async () => {
       return {
@@ -203,7 +208,7 @@ describe('test index', () => {
         },
       }).resolves.toEqual(false);
 
-      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries, path);
+      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries);
       expect(fetch).toHaveBeenCalledTimes(maxTries)
       expect(mockUtils.build.failBuild).toThrowError();
     } catch (e) {
