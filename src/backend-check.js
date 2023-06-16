@@ -21,12 +21,19 @@ export const checkBackend = async (version) => {
     const response = await fetch(path, actualInit)
 
     if (response) {
+      const repliedVersion = response.headers.get('Commercetools-Frontend-Extension-Version')
+
+      if (repliedVersion !== version) {
+        console.log(`Version mismatch, got answer from ${repliedVersion} instead of ${version}`)
+        return {up: false}
+      }
+
       return await response.json()
     }
   } catch (e) {
     console.log(`Error while calling extension runner ${path}:`, e)
   }
-  return { up: false }
+  return {up: false}
 }
 
 /**
@@ -42,7 +49,7 @@ export const waitForBackend = async (shortCommitHash, maxTries) => {
   for (let i = 0; i < maxTries; i++) {
     const attempt = i + 1
     console.log('Checking if extension is up, attempt: ', attempt)
-    const { up } = await checkBackend(shortCommitHash)
+    const {up} = await checkBackend(shortCommitHash)
     if (!up) {
       console.error(
         'Extension is not available, waiting for',

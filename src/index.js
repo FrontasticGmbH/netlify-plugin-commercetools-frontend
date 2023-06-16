@@ -30,7 +30,7 @@ export const onPreBuild = async function ({
       `NEXT_PUBLIC_EXT_BUILD_ID=${shortCommitHash}`,
     )
     if (process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE !== "1") {
-      await waitForBackend(shortCommitHash, 35)
+      await waitForBackend(shortCommitHash, 40)
     }
   } catch (error) {
     // Report a user error
