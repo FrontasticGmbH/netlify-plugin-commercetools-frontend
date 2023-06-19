@@ -1,9 +1,8 @@
-import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest'
-import {onPreBuild} from '../src/index'
-import {checkBackend, waitForBackend} from '../src/backend-check'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { onPreBuild } from '../src/index'
+import { checkBackend, waitForBackend } from '../src/backend-check'
 import * as nodeFetch from 'node-fetch'
 import fs from 'fs'
-
 
 vi.mock('node-fetch', async () => {
   const actual = await vi.importActual('node-fetch')
@@ -34,7 +33,6 @@ describe('test index', () => {
   }
   beforeEach(() => {
     vi.useFakeTimers()
-
   })
 
   afterEach(() => {
@@ -42,21 +40,21 @@ describe('test index', () => {
   })
 
   it('should return true if backend is up', async function () {
-    process.env.COMMIT_REF = version;
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
 
-    const responseObj = {up: true}
+    const responseObj = { up: true }
     fetch.mockImplementationOnce(async () => {
       return {
         headers: {
           // eslint-disable-next-line no-unused-vars
-          get: (header) => version
+          get: (header) => version,
         },
         json: async () => responseObj,
       }
     })
 
-    const {up} = await checkBackend(version, path)
+    const { up } = await checkBackend(version, path)
 
     expect(fetch).toBeCalledWith(path, expectedInit)
     expect(fetch).toBeCalledTimes(1)
@@ -64,45 +62,45 @@ describe('test index', () => {
   })
 
   it('should return false if backend is not up', async function () {
-    process.env.COMMIT_REF = version;
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
 
-    const responseObj = {up: false}
+    const responseObj = { up: false }
     fetch.mockImplementationOnce(async () => {
       return {
         headers: {
           // eslint-disable-next-line no-unused-vars
-          get: (header) => version
+          get: (header) => version,
         },
         json: async () => responseObj,
       }
     })
-    const {up} = await checkBackend(version, path)
+    const { up } = await checkBackend(version, path)
     expect(fetch).toBeCalledWith(path, expectedInit)
     expect(up).toBe(false)
   })
 
   it('should return false is response comes from no version', async function () {
     process.env.COMMIT_REF = version
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
 
-    let responseJsonCalled = false;
+    let responseJsonCalled = false
     fetch.mockImplementationOnce(async () => {
       return {
         headers: {
           // eslint-disable-next-line no-unused-vars
-          get: (header) => ''
+          get: (header) => '',
         },
         json: async () => {
-          responseJsonCalled = true;
+          responseJsonCalled = true
           throw new Error(
-            'response.json() should not be called if headers do not match'
+            'response.json() should not be called if headers do not match',
           )
         },
       }
     })
 
-    const {up} = await checkBackend(version, path)
+    const { up } = await checkBackend(version, path)
     expect(fetch).toBeCalledWith(path, expectedInit)
     expect(up).toBe(false)
     expect(responseJsonCalled).toBe(false)
@@ -110,25 +108,25 @@ describe('test index', () => {
 
   it('should return false is response comes from different version', async function () {
     process.env.COMMIT_REF = version
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
 
-    let responseJsonCalled = false;
+    let responseJsonCalled = false
     fetch.mockImplementationOnce(async () => {
       return {
         headers: {
           // eslint-disable-next-line no-unused-vars
-          get: (header) => 'dummy'
+          get: (header) => 'dummy',
         },
         json: async () => {
-          responseJsonCalled = true;
+          responseJsonCalled = true
           throw new Error(
-            'response.json() should not be called if headers do not match'
+            'response.json() should not be called if headers do not match',
           )
         },
       }
     })
 
-    const {up} = await checkBackend(version, path)
+    const { up } = await checkBackend(version, path)
     expect(fetch).toBeCalledWith(path, expectedInit)
     expect(up).toBe(false)
     expect(responseJsonCalled).toBe(false)
@@ -137,7 +135,9 @@ describe('test index', () => {
   it('test if backend is called with maximum tries and extensions is not up ', async function () {
     const maxTries = 3
     try {
-      await waitForBackend(version, maxTries, path).rejects.toThrow('Extension is not up')
+      await waitForBackend(version, maxTries, path).rejects.toThrow(
+        'Extension is not up',
+      )
       expect(fetch).toHaveBeenCalledTimes(maxTries)
     } catch (e) {
       expect(e).toBeInstanceOf(Error)
@@ -155,10 +155,13 @@ describe('test index', () => {
   })
 
   it('should write file and wait for backend', async () => {
-
-    const mockNetlifyConfig = {};
-    const mockInputs = {};
-    const mockConstants = {PUBLISH_DIR: 'dist'};
+    const mockNetlifyConfig = {
+      build: {
+        environment: {},
+      },
+    }
+    const mockInputs = {}
+    const mockConstants = { PUBLISH_DIR: 'dist' }
     const mockUtils = {
       build: {
         failBuild: vi.fn(),
@@ -166,14 +169,14 @@ describe('test index', () => {
       status: {
         show: vi.fn(),
       },
-    };
+    }
 
-    process.env.COMMIT_REF = version;
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
 
-    fs.writeFileSync = vi.fn();
+    fs.writeFileSync = vi.fn()
 
-    const waitForBackendMock = vi.fn(() => ({up: true}));
+    const waitForBackendMock = vi.fn(() => ({ up: true }))
 
     const maxTries = 3
     try {
@@ -186,21 +189,27 @@ describe('test index', () => {
           ...mockUtils,
           waitForBackendMock,
         },
-      }).resolves.toEqual(false);
+      }).resolves.toEqual(false)
 
-      expect(fs.writeFileSync).toHaveBeenCalledWith('.env.production.local', `NEXT_PUBLIC_EXT_BUILD_ID=${version}`);
-      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries, path);
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        '.env.production.local',
+        `NEXT_PUBLIC_EXT_BUILD_ID=${version}`,
+      )
+      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries, path)
       expect(fetch).toHaveBeenCalledTimes(maxTries)
     } catch (e) {
       //We ignore, because there is no error
     }
-  });
+  })
 
   it('should not call backend if disable environment variable is 1', async () => {
-
-    const mockNetlifyConfig = {};
-    const mockInputs = {};
-    const mockConstants = {PUBLISH_DIR: 'dist'};
+    const mockNetlifyConfig = {
+      build: {
+        environment: {},
+      },
+    }
+    const mockInputs = {}
+    const mockConstants = { PUBLISH_DIR: 'dist' }
     const mockUtils = {
       build: {
         failBuild: vi.fn(),
@@ -208,14 +217,14 @@ describe('test index', () => {
       status: {
         show: vi.fn(),
       },
-    };
+    }
 
-    process.env.COMMIT_REF = version;
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
-    process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE = "1";
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
+    process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE = '1'
 
     fs.writeFileSync = vi.fn()
-    const waitForBackendMock = vi.fn(() => ({up: false}));
+    const waitForBackendMock = vi.fn(() => ({ up: false }))
 
     const preBuildResult = await onPreBuild({
       netlifyConfig: mockNetlifyConfig,
@@ -226,19 +235,22 @@ describe('test index', () => {
         ...mockUtils,
         waitForBackendMock,
       },
-    });
+    })
 
     expect(preBuildResult).toBeTruthy()
     expect(waitForBackendMock).toHaveBeenCalledTimes(0)
     expect(fetch).toHaveBeenCalledTimes(0)
-    expect(mockUtils.build.failBuild).toHaveBeenCalledTimes(0);
-  });
+    expect(mockUtils.build.failBuild).toHaveBeenCalledTimes(0)
+  })
 
   it('should call build.failBuild', async () => {
-
-    const mockNetlifyConfig = {};
-    const mockInputs = {};
-    const mockConstants = {PUBLISH_DIR: 'dist'};
+    const mockNetlifyConfig = {
+      build: {
+        environment: {},
+      },
+    }
+    const mockInputs = {}
+    const mockConstants = { PUBLISH_DIR: 'dist' }
     const mockUtils = {
       build: {
         failBuild: vi.fn(),
@@ -246,14 +258,14 @@ describe('test index', () => {
       status: {
         show: vi.fn(),
       },
-    };
+    }
 
-    process.env.COMMIT_REF = version;
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = "http://localhost";
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
 
-    fs.writeFileSync = vi.fn();
+    fs.writeFileSync = vi.fn()
 
-    const waitForBackendMock = vi.fn(() => ({up: false}));
+    const waitForBackendMock = vi.fn(() => ({ up: false }))
 
     const maxTries = 3
     try {
@@ -266,14 +278,13 @@ describe('test index', () => {
           ...mockUtils,
           waitForBackendMock,
         },
-      }).resolves.toEqual(false);
+      }).resolves.toEqual(false)
 
-      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries);
+      expect(waitForBackend).toHaveBeenCalledWith(version, maxTries)
       expect(fetch).toHaveBeenCalledTimes(maxTries)
-      expect(mockUtils.build.failBuild).toThrowError();
+      expect(mockUtils.build.failBuild).toThrowError()
     } catch (e) {
       //ignore
     }
-  });
-
+  })
 })
