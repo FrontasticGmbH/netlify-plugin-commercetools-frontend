@@ -11,14 +11,15 @@ vi.mock('node-fetch', async () => {
     default: vi.fn(),
   }
 })
-vi.mock('../src/index', async () => {
-  const actual = await vi.importActual('../src/index')
+vi.mock('../src/backend-check', async () => {
+  const actual = await vi.importActual('../src/backend-check')
   return {
     ...actual,
-    sleep: vi.fn(),
+    waitForBackend: vi.fn(),
   }
 })
 const fetch = vi.mocked(nodeFetch.default)
+const waitForBackendMock = vi.mocked(waitForBackend)
 
 describe('test index', () => {
   const version = '56664e5'
@@ -286,5 +287,109 @@ describe('test index', () => {
     } catch (e) {
       //ignore
     }
+  })
+
+  it('Can override build id', async () => {
+    const mockNetlifyConfig = {
+      build: {
+        environment: {
+          NEXT_PUBLIC_EXT_BUILD_ID: 'foobar',
+        },
+      },
+    }
+    const mockInputs = {}
+    const mockConstants = { PUBLISH_DIR: 'dist' }
+    const mockUtils = {
+      build: {
+        failBuild: vi.fn(),
+      },
+      status: {
+        show: vi.fn(),
+      },
+    }
+
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
+    process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE = '0'
+
+    fs.writeFileSync = vi.fn()
+
+    fetch.mockImplementationOnce(async () => {
+      return {
+        headers: {
+          // eslint-disable-next-line no-unused-vars
+          get: (header) => version,
+        },
+        json: async () => {
+          return {
+            up: true,
+          }
+        },
+      }
+    })
+
+    await onPreBuild({
+      netlifyConfig: mockNetlifyConfig,
+      inputs: mockInputs,
+      error: null,
+      constants: mockConstants,
+      utils: {
+        ...mockUtils,
+      },
+    })
+
+    expect(waitForBackendMock).toHaveBeenCalledWith('foobar', 40)
+  })
+
+  it('Empty value does not override build id', async () => {
+    const mockNetlifyConfig = {
+      build: {
+        environment: {
+          NEXT_PUBLIC_EXT_BUILD_ID: '',
+        },
+      },
+    }
+    const mockInputs = {}
+    const mockConstants = { PUBLISH_DIR: 'dist' }
+    const mockUtils = {
+      build: {
+        failBuild: vi.fn(),
+      },
+      status: {
+        show: vi.fn(),
+      },
+    }
+
+    process.env.COMMIT_REF = version
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST = 'http://localhost'
+    process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE = '0'
+
+    fs.writeFileSync = vi.fn()
+
+    fetch.mockImplementationOnce(async () => {
+      return {
+        headers: {
+          // eslint-disable-next-line no-unused-vars
+          get: (header) => version,
+        },
+        json: async () => {
+          return {
+            up: true,
+          }
+        },
+      }
+    })
+
+    await onPreBuild({
+      netlifyConfig: mockNetlifyConfig,
+      inputs: mockInputs,
+      error: null,
+      constants: mockConstants,
+      utils: {
+        ...mockUtils,
+      },
+    })
+
+    expect(waitForBackendMock).toHaveBeenCalledWith(version, 40)
   })
 })
