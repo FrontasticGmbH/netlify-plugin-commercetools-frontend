@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv'
-import * as fs from 'fs'
-import { waitForBackend } from "./backend-check.js";
+import { waitForBackend } from './backend-check.js'
 
 dotenv.config()
 
@@ -25,12 +24,32 @@ export const onPreBuild = async function ({
   try {
     // Commands are printed in Netlify logs
     const shortCommitHash = process.env.COMMIT_REF.substring(0, 7)
-    fs.writeFileSync(
-      '.env.production.local',
-      `NEXT_PUBLIC_EXT_BUILD_ID=${shortCommitHash}`,
-    )
-    if (process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE !== "1") {
-      await waitForBackend(shortCommitHash, 40)
+    const buildId = netlifyConfig.build.environment.NEXT_PUBLIC_EXT_BUILD_ID
+
+    if (!netlifyConfig.build.environment.NEXT_PUBLIC_EXT_BUILD_ID) {
+      console.info(
+        `NEXT_PUBLIC_EXT_BUILD_ID is not set or has falsy value. Setting it to short commit hash: "${shortCommitHash}"`,
+      )
+      netlifyConfig.build.environment.NEXT_PUBLIC_EXT_BUILD_ID = shortCommitHash
+    } else {
+      console.info(
+        `NEXT_PUBLIC_EXT_BUILD_ID is already set to "${buildId}". Using that instead of current short commit hash "${shortCommitHash}"`,
+      )
+    }
+
+    if (
+      process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE !== '1'
+    ) {
+      await waitForBackend(
+        netlifyConfig.build.environment.NEXT_PUBLIC_EXT_BUILD_ID,
+        40,
+      )
+    } else {
+      console.warn(
+        'NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_WAIT_DISABLE is set to 1. \n' +
+          `Skipping checking if the extension for the current build (${netlifyConfig.build.environment.NEXT_PUBLIC_EXT_BUILD_ID}) is up. \n` +
+          'This setting can cause sites to be deployed without a corresponding backend extension.',
+      )
     }
   } catch (error) {
     // Report a user error
