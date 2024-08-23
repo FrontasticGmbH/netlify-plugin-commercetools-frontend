@@ -10,8 +10,8 @@ export const checkBackend = async (version) => {
 
   // Make sure the extension is available for the ISR build
   path += process.env.NETLIFY_PLUGIN_COMMERCETOOLS_FRONTEND_ISR_ENABLE === '1'
-    ? ''
-    : '?extension_force_forward=true'
+    ? '?extension_force_forward=true'
+    : ''
 
   console.log('Calling ' + path, 'Version ' + version)
   const actualInit = {
