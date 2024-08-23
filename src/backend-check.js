@@ -5,8 +5,9 @@ import fetch from "node-fetch";
  * Does an HTTP request to the appropriate extension runner
  */
 export const checkBackend = async (version) => {
+  // Forward the request to the extension even if dormant or not deployed
   const path =
-    process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner'
+    process.env.NEXT_PUBLIC_FRONTASTIC_HOST + '/status/extensionrunner?extension_force_forward=true'
 
   console.log('Calling ' + path, 'Version ' + version)
   const actualInit = {
